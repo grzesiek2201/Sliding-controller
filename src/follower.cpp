@@ -41,9 +41,6 @@ void Follower::update_pos(std::vector<double>& x_vl, std::vector<double>& x_vl_p
     {
         theta_new = atan2((y_new - state_ref_.at(1)), (x_new - state_ref_.at(0)));
     }
-    // state_ref_prev_.at(0) = 1;
-    // state_ref_.at(0) = 0;
-    // state_ref_prev_.at(0) = state_ref_.at(0); state_ref_prev_.at(1) = state_ref_.at(1); state_ref_prev_.at(2) = state_ref_.at(2);
     state_ref_prev_ = state_ref_;
     state_ref_.at(0) = x_new; state_ref_.at(1) = y_new; state_ref_.at(2) = theta_new;
 }

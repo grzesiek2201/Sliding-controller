@@ -65,7 +65,7 @@ class Rider : public rclcpp::Node
 
             timer_ = this->create_wall_timer(10ms, std::bind(&Rider::update_vel, this));
 
-            ts_ = data["T"].front(); data["T"].pop();// * 1000;  // converted into miliseconds
+            ts_ = data["T"].front(); data["T"].pop();
             data["T"].pop();
 
             follower_ = std::make_unique<Follower>(.35, M_PI/2, std::vector<double>{data["X"].front(), data["Y"].front(), data["Theta"].front()});
@@ -103,7 +103,6 @@ class Rider : public rclcpp::Node
                 loaded_values["W"].push(el);
             }
             for ( auto const& el: j["t"]) {
-                // RCLCPP_INFO(this->get_logger(), std::to_string(el).c_str());
                 loaded_values["T"].push(el);
             }
 
@@ -121,7 +120,6 @@ class Rider : public rclcpp::Node
 
         void update_vel()
         {
-            // RCLCPP_INFO(this->get_logger(), "UPDATE VELOCITY");
             if ( !start_ )
             {
                 return;
@@ -129,7 +127,6 @@ class Rider : public rclcpp::Node
 
             if ( data["T"].empty() )
             {
-                // RCLCPP_INFO(this->get_logger(), "DATA EMPTY");
                 send_vel(std::vector<double> {.0, .0});
                 return;
             }
@@ -137,8 +134,6 @@ class Rider : public rclcpp::Node
             t1 = steady_clock::now();
             std::vector<double> u{0, 0};
 
-            // RCLCPP_INFO(this->get_logger(), std::to_string(ts_).c_str());
-            // RCLCPP_INFO(this->get_logger(), std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count()).c_str());
             if ( std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() >= ts_*1000 )
             {
                 // virtual leader state at the end of this time interval
@@ -150,9 +145,6 @@ class Rider : public rclcpp::Node
                 u.at(0) = data["V"].front(); data["V"].pop();
                 u.at(1) = data["W"].front(); data["W"].pop();
 
-                // RCLCPP_INFO(this->get_logger(), std::to_string(u.at(0)).c_str());
-                // RCLCPP_INFO(this->get_logger(), std::to_string(u.at(1)).c_str());
-
                 // next time interval
                 double t = data["T"].front(); data["T"].pop();
 
@@ -160,8 +152,6 @@ class Rider : public rclcpp::Node
                 std::vector<double> state{x, y, theta};
 
                 follower_->update_pos(state, x_prev_, u);
-                // std::string pos_fol = "x:" + std::to_string(follower_->get_state_ref().at(0)) + "; y:" + std::to_string(follower_->get_state_ref().at(1));
-                // RCLCPP_INFO(this->get_logger(), pos_fol.c_str());
                 follower_->update_vel(t - ts_);
                 std::string vel_fol = "v:" + std::to_string(follower_->get_control().at(0)) + "; w:" + std::to_string(follower_->get_control().at(1));
                 RCLCPP_INFO(this->get_logger(), vel_fol.c_str());
@@ -198,9 +188,6 @@ class Rider : public rclcpp::Node
             std::vector<double> angles = euler_from_quaternion(msg->pose.pose.orientation);
             std::vector<double> state{x, y, angles.at(2)};
             follower_->set_state(state);
-            // std::string pos_fol = "x:" + std::to_string(follower_->get_state().at(0)) + "; y:" + std::to_string(follower_->get_state().at(1))
-            //                         + "; theta:" + std::to_string(follower_->get_state().at(2));
-            // RCLCPP_INFO(this->get_logger(), pos_fol.c_str());
         }
         
         void timer_callback(std_msgs::msg::Bool::SharedPtr msg)
